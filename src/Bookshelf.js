@@ -16,23 +16,26 @@ import Empty from "./Empty.js";
 //         author: "Orson Scott Card",
 //     },
 // ];
-const Bookshelf = ({ initailBooks, title, updateBook }) => {
-    let books = initailBooks.filter((book) => book.shelf === title);
+const Bookshelf = ({ books, title, updateBook }) => {
+    let specificBooks=[];
+    if (books.length) {
+        specificBooks = books.filter((book) => book.shelf === title);
+    }
     return (
         <>
             <div className="bookshelf">
                 <h2 className="bookshelf-title">{title}</h2>
                 <div className="bookshelf-books">
-                    {!books.length ? (
+                    {specificBooks.length === 0 ? (
                         <Empty />
                     ) : (
                         <ol className="books-grid">
-                            {books.map((book) => {
+                            {specificBooks.map((book) => {
                                 return (
                                     <Book
                                         key={book.id}
                                         id={book.id}
-                                        cover={book.imageLinks.smallThumbnail}
+                                        cover={book.imageLinks.thumbnail}
                                         title={book.title}
                                         shelf={book.shelf}
                                         book={book}

@@ -2,55 +2,50 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import { search } from "./BooksAPI";
 import Bookshelf from "./Bookshelf";
-import { initailBooks } from "./initailbook";
 import Header from "./Header";
-import * as BookApi from './BooksAPI.js'
+import * as BookApi from "./BooksAPI.js";
+import Search from "./Search";
 function App() {
-
     const [showSearchPage, setShowSearchpage] = useState(false);
     const [books, setBooks] = useState([]);
-    const updateBook = (book, shelf) => {
-        if (shelf === "none") {
-            setBooks((prev) => books.filter((cbook) => cbook.id !== book.id));
-        }else{
-            setBooks((prev) => {
-                return books.map((cbook) => {
-                    if (cbook.id === book.id) {
-                        cbook.shelf = shelf;
-                    }
-                    return cbook;
-                });
-            });
-            BookApi.update(book,shelf);
-        }
+    const toggleSearchPage = () => {
+        setShowSearchpage(!showSearchPage);
     };
-        useEffect(() => {
-            BookApi.getAll().then((data) => {
-                setBooks(data);
+    const identifyBooks = () => {
+        let map = new Map();
+        books.forEach((book) => {
+            map.set(book.id, book);
+        });
+        return map;
+    };
+    useEffect(async () => {
+        let data = await BookApi.getAll();
+        setBooks(data);
+    }, []);
+    const updateBook = async (book, shelf) => {
+        let bookIdentifer = identifyBooks();
+        if (!bookIdentifer.has(book.id)) {
+            //in case add book from library
+            setBooks((prev) => [book, ...prev]);
+        } else {
+            //in case move book in local shlefs
+            let updateBooks = books.map((current) => {
+                if (current.id === book.id) {
+                    current.shelf = shelf;
+                }
+                return current;
             });
-        },[]);
-console.log(books[0])
+            setBooks((prev) => [...updateBooks]);
+        }
+    await BookApi.update(book, shelf);
+    };
     return (
         <div className="app">
             {showSearchPage ? (
-                <div className="search-books">
-                    <div className="search-books-bar">
-                        <a
-                            className="close-search"
-                            onClick={() => setShowSearchpage(!showSearchPage)}>
-                            Close
-                        </a>
-                        <div className="search-books-input-wrapper">
-                            <input
-                                type="text"
-                                placeholder="Search by title, author, or ISBN"
-                            />
-                        </div>
-                    </div>
-                    <div className="search-books-results">
-                        <ol className="books-grid"></ol>
-                    </div>
-                </div>
+                <Search
+                    toggleSearchPage={toggleSearchPage}
+                    updateBook={updateBook}
+                    identifyBooks={identifyBooks}></Search>
             ) : (
                 <div className="list-books">
                     <Header header={"My Reads"} />
@@ -59,15 +54,15 @@ console.log(books[0])
                             <Bookshelf
                                 updateBook={updateBook}
                                 title={"currentlyReading"}
-                                initailBooks={books}
+                                books={books}
                             />
                             <Bookshelf
                                 updateBook={updateBook}
-                                initailBooks={books}
+                                books={books}
                                 title={"wantToRead"}></Bookshelf>
                             <Bookshelf
                                 updateBook={updateBook}
-                                initailBooks={books}
+                                books={books}
                                 title={"read"}></Bookshelf>
                         </div>
                     </div>

@@ -4,7 +4,7 @@ import ToggleShelfs from "./ToggleShelfes";
 
 const Book = ({book, cover, title, author, shelf, updateBook }) => {
     return (
-        <>
+        
             <li>
                 <div className="book">
                     <div className="book-top">
@@ -20,12 +20,11 @@ const Book = ({book, cover, title, author, shelf, updateBook }) => {
                             shelf={shelf}
                             book={book}></ToggleShelfs>
                     </div>
-
                     <div className="book-title">{title}</div>
                     <div className="book-authors">{author}</div>
                 </div>
             </li>
-        </>
+        
     );
 };
 
