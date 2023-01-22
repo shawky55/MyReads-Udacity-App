@@ -16,6 +16,7 @@ const Search = ({ updateBook, identifyBooks }) => {
         });
         setSerchResult(filterdResult);
     };
+
     useEffect(() => {
         async function searchHanlder() {
             if (query) {
@@ -25,11 +26,12 @@ const Search = ({ updateBook, identifyBooks }) => {
                     updateSearchResult(res);
                 }
             }
-            return () => {
-                setSerchResult([]);
-            };
         }
         searchHanlder();
+
+        return () => {
+            updateSearchResult([]);
+        };
     }, [query]);
     const showSearchQuery = () => {
         return searchResult.map((book) => {

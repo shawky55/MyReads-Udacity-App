@@ -28,7 +28,7 @@ const Bookshelf = ({ books, title, updateBook }) => {
                                         shelf={book.shelf}
                                         book={book}
                                         updateBook={updateBook}
-                                        author={book.authors[0]}
+                                        author={book.authors}
                                     />
                                 );
                             })}
