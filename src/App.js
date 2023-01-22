@@ -1,16 +1,14 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { search } from "./BooksAPI";
+import { getAll, update } from "./BooksAPI";
+import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+
 import Bookshelf from "./Bookshelf";
 import Header from "./Header";
-import * as BookApi from "./BooksAPI.js";
 import Search from "./Search";
+import Alert from "./Alert";
 function App() {
-    const [showSearchPage, setShowSearchpage] = useState(false);
     const [books, setBooks] = useState([]);
-    const toggleSearchPage = () => {
-        setShowSearchpage(!showSearchPage);
-    };
     const identifyBooks = () => {
         let map = new Map();
         books.forEach((book) => {
@@ -18,61 +16,82 @@ function App() {
         });
         return map;
     };
-    useEffect(async () => {
-        let data = await BookApi.getAll();
-        setBooks(data);
+
+    useEffect(() => {
+        async function getBooks() {
+            let data = await getAll();
+            setBooks(data);
+        }
+        getBooks();
     }, []);
+
     const updateBook = async (book, shelf) => {
         let bookIdentifer = identifyBooks();
+        let updatedShelfs = [];
         if (!bookIdentifer.has(book.id)) {
-            //in case add book from library
-            setBooks((prev) => [book, ...prev]);
+            book.shelf = shelf;
+            updatedShelfs = [...books, book];
+        } else if (shelf === "none") {
+            updatedShelfs = books.filter((current) => current.id !== book.id);
         } else {
-            //in case move book in local shlefs
-            let updateBooks = books.map((current) => {
+            updatedShelfs = books.map((current) => {
                 if (current.id === book.id) {
                     current.shelf = shelf;
                 }
                 return current;
             });
-            setBooks((prev) => [...updateBooks]);
         }
-    await BookApi.update(book, shelf);
+        setBooks(updatedShelfs);
+        await update(book, shelf);
     };
     return (
         <div className="app">
-            {showSearchPage ? (
-                <Search
-                    toggleSearchPage={toggleSearchPage}
-                    updateBook={updateBook}
-                    identifyBooks={identifyBooks}></Search>
-            ) : (
-                <div className="list-books">
-                    <Header header={"My Reads"} />
-                    <div className="list-books-content">
-                        <div>
-                            <Bookshelf
+            <Router>
+                <Routes>
+                    <Route
+                        path="/search"
+                        element={
+                            <Search
                                 updateBook={updateBook}
-                                title={"currentlyReading"}
-                                books={books}
+                                identifyBooks={identifyBooks}
                             />
-                            <Bookshelf
-                                updateBook={updateBook}
-                                books={books}
-                                title={"wantToRead"}></Bookshelf>
-                            <Bookshelf
-                                updateBook={updateBook}
-                                books={books}
-                                title={"read"}></Bookshelf>
-                        </div>
-                    </div>
-                    <div className="open-search">
-                        <a onClick={() => setShowSearchpage(!showSearchPage)}>
-                            Add a book
-                        </a>
-                    </div>
-                </div>
-            )}
+                        }></Route>
+                    <Route
+                        path="/"
+                        element={
+                            <div className="list-books">
+                                <Header header={"My Reads"} />
+                                <div className="list-books-content">
+                                    <div>
+                                        <Bookshelf
+                                            updateBook={updateBook}
+                                            title={"currentlyReading"}
+                                            books={books}
+                                        />
+                                        <Bookshelf
+                                            updateBook={updateBook}
+                                            books={books}
+                                            title={"wantToRead"}></Bookshelf>
+                                        <Bookshelf
+                                            updateBook={updateBook}
+                                            books={books}
+                                            title={"read"}></Bookshelf>
+                                    </div>
+                                </div>
+                                <Link
+                                    className="open-search-btn open-search"
+                                    to="/search">
+                                    Add a book
+                                </Link>
+                            </div>
+                        }></Route>
+                    <Route
+                        path="*"
+                        element={
+                            <Alert message={"Page not Found"}></Alert>
+                        }></Route>
+                </Routes>
+            </Router>
         </div>
     );
 }

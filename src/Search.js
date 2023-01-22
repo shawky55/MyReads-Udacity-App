@@ -1,37 +1,35 @@
-import { search, update } from "./BooksAPI";
+import { search } from "./BooksAPI";
 import { useState, useEffect } from "react";
 import Book from "./BookTemplate";
-
-const Search = ({ toggleSearchPage, updateBook, identifyBooks }) => {
+import { Link } from "react-router-dom";
+const Search = ({ updateBook, identifyBooks }) => {
     const [query, setQuery] = useState("");
     const [searchResult, setSerchResult] = useState([]);
-    // const [localShelf, setLocalShelf] = useState([]);
-
     const updateSearchResult = (res) => {
-        let identiyBooks=identifyBooks();
-        if (searchResult) {
-            let filterdResult = res?.map((book) => {
-                if (identiyBooks.has(book.id)) {
-                    return identiyBooks.get(book.id);
-                } else {
-                    return book;
-                }
-            });
-            setSerchResult(filterdResult);
-        }
+        let identiyBooks = identifyBooks();
+        let filterdResult = res.map((book) => {
+            if (identiyBooks.has(book.id)) {
+                return identiyBooks.get(book.id);
+            } else {
+                return book;
+            }
+        });
+        setSerchResult(filterdResult);
     };
-    useEffect(async () => {
-        let response = await search(query);
-        if (!response) {
-            setSerchResult([]);
+    useEffect(() => {
+        async function searchHanlder() {
+            if (query) {
+                let res = await search(query);
+                if (res === undefined || res?.error) {
+                } else {
+                    updateSearchResult(res);
+                }
+            }
+            return () => {
+                setSerchResult([]);
+            };
         }
-        if (query) {
-            updateSearchResult(response);
-        }
-
-        // return () => {
-        //     setSerchResult((prev) => []);
-        // };
+        searchHanlder();
     }, [query]);
     const showSearchQuery = () => {
         return searchResult.map((book) => {
@@ -54,11 +52,10 @@ const Search = ({ toggleSearchPage, updateBook, identifyBooks }) => {
             {" "}
             <div className="search-books">
                 <div className="search-books-bar">
-                    <a
-                        className="close-search"
-                        onClick={() => toggleSearchPage()}>
+                    <Link to="/" className="close-search">
                         Close
-                    </a>
+                    </Link>
+
                     <div className="search-books-input-wrapper">
                         <input
                             type="text"
